@@ -137,6 +137,17 @@ class Obstacle:
 
     def draw(self, SCREEN):
         SCREEN.blit(self.image[self.type], self.rect)
+    
+    def showInfo(self):
+        font = pygame.font.Font('freesansbold.ttf', 14)
+        textY = font.render("Obstacle height: " + str(SCREEN_HEIGHT - self.rect.y), True, (0, 0, 0))
+        textRectY = textY.get_rect()
+        textRectY.center = (100, 40)
+        SCREEN.blit(textY, textRectY)
+        textX = font.render("Obstacle distance: " + str(self.rect.x), True, (0, 0, 0))
+        textRectX = textX.get_rect()
+        textRectX.center = (100, 60)
+        SCREEN.blit(textX, textRectX)
 
 
 class SmallCactus(Obstacle):
@@ -180,6 +191,13 @@ def main():
     font = pygame.font.Font('freesansbold.ttf', 20)
     obstacles = []
     death_count = 0
+    
+    def showGameSpeed(game_speed):
+        font = pygame.font.Font('freesansbold.ttf', 14)
+        text = font.render("Game Speed: " + str(game_speed), True, (0, 0, 0))
+        textRect = text.get_rect()
+        textRect.center = (100, 80)
+        SCREEN.blit(text, textRect)
 
     def score():
         global points, game_speed
@@ -203,7 +221,6 @@ def main():
         x_pos_bg -= game_speed
 
     while run:
-        # print('Ta rolando')
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -225,12 +242,13 @@ def main():
         for obstacle in obstacles:
             obstacle.draw(SCREEN)
             obstacle.update()
+            obstacle.showInfo()
             if player.dino_rect.colliderect(obstacle.rect):
                 pygame.time.delay(2000)
                 death_count += 1
                 menu(death_count)
-
         background()
+        showGameSpeed(game_speed)
 
         cloud.draw(SCREEN)
         cloud.update()
