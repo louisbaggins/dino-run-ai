@@ -3,7 +3,7 @@
 """
 import os
 import cv2
-from pygame import RLEACCEL
+from pygame import RLEACCEL, HIDDEN, SHOWN
 from pygame.image import load
 from pygame.sprite import Sprite, Group, collide_mask
 from pygame import Rect, init, time, display, mixer, transform, Surface
@@ -25,7 +25,8 @@ background_col = (235, 235, 235)
 
 high_score = 0
 
-screen = display.set_mode(scr_size)
+# to turn on the screen just remove the HIDDEN flag below
+screen = display.set_mode(scr_size, flags=HIDDEN)
 clock = time.Clock()
 display.set_caption("T-Rex Rush")
 
@@ -441,9 +442,9 @@ class ChromeDino(object):
         state = array3d(state)
         if record:
             return torch.from_numpy(pre_processing(state)), np.transpose(
-                cv2.cvtColor(state, cv2.COLOR_RGB2BGR), (1, 0, 2)), reward, not (reward > 0)
+                cv2.cvtColor(state, cv2.COLOR_RGB2BGR), (1, 0, 2)), reward, not (reward > 0), self.playerDino.score
         else:
-            return torch.from_numpy(pre_processing(state)), reward, not (reward > 0)
+            return torch.from_numpy(pre_processing(state)), reward, not (reward > 0), self.playerDino.score
 
 
 # if __name__ == "__main__":

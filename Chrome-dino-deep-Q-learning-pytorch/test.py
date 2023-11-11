@@ -31,7 +31,7 @@ def test(opt):
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
     env = ChromeDino()
-    state, raw_state, _, _ = env.step(0, True)
+    state, raw_state, _, _, score = env.step(0, True)
     state = torch.cat(tuple(state for _ in range(4)))[None, :, :, :]
     if torch.cuda.is_available():
         model.cuda()
@@ -41,12 +41,14 @@ def test(opt):
     while not done:
         prediction = model(state)[0]
         action = torch.argmax(prediction).item()
-        next_state, raw_next_state, reward, done = env.step(action, True)
+        next_state, raw_next_state, reward, done, score = env.step(action, True)
+        if (score % 1000 == 0): print("Current score: {}".format(score))
         out.write(raw_next_state)
         if torch.cuda.is_available():
             next_state = next_state.cuda()
         next_state = torch.cat((state[0, 1:, :, :], next_state))[None, :, :, :]
         state = next_state
+    print("Final score: {}".format(score))
 
 
 
