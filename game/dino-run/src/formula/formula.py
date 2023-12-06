@@ -23,6 +23,12 @@ LARGE_CACTUS = [pygame.image.load("images/Cactus/LargeCactus1.png"),
 BIRD = [pygame.image.load("images/Bird/Bird1.png"),
         pygame.image.load("images/Bird/Bird2.png")]
 CLOUD = pygame.image.load("images/Other/Cloud.png")
+MUSHROOM = pygame.image.load("images/Powerup/mush.png")
+BIGJUMPING = pygame.image.load("images/BigDino/DinoJump.png")
+BIGRUNNING = [pygame.image.load("images/BigDino/DinoRun1.png"),
+           pygame.image.load("images/BigDino/DinoRun2.png")]
+BIGDUCKING = [pygame.image.load("images/BigDino/DinoDuck1.png"),
+           pygame.image.load("images/BigDino/DinoDuck2.png")]
 BG = pygame.image.load("images/Other/Track.png")
 
 # Commands
@@ -43,6 +49,78 @@ class Dinosaur:
         self.duck_img = DUCKING
         self.run_img = RUNNING
         self.jump_img = JUMPING
+
+        self.dino_duck = False
+        self.dino_run = True
+        self.dino_jump = False
+
+        self.step_index = 0
+        self.jump_vel = self.JUMP_VEL
+        self.image = self.run_img[0]
+        self.dino_rect = self.image.get_rect()
+        self.dino_rect.x = self.X_POS
+        self.dino_rect.y = self.Y_POS
+
+    def update(self, userInput):
+        if self.dino_duck:
+            self.duck()
+        if self.dino_run:
+            self.run()
+        if self.dino_jump:
+            self.jump()
+
+        if self.step_index >= 10:
+            self.step_index = 0
+
+        if userInput[pygame.K_UP] and not self.dino_jump:
+            self.dino_duck = False
+            self.dino_run = False
+            self.dino_jump = True
+        elif userInput[pygame.K_DOWN] and not self.dino_jump:
+            self.dino_duck = True
+            self.dino_run = False
+            self.dino_jump = False
+        elif not (self.dino_jump or userInput[pygame.K_DOWN]):
+            self.dino_duck = False
+            self.dino_run = True
+            self.dino_jump = False
+
+    def duck(self):
+        self.image = self.duck_img[self.step_index // 5]
+        self.dino_rect = self.image.get_rect()
+        self.dino_rect.x = self.X_POS
+        self.dino_rect.y = self.Y_POS_DUCK
+        self.step_index += 1
+
+    def run(self):
+        self.image = self.run_img[self.step_index // 5]
+        self.dino_rect = self.image.get_rect()
+        self.dino_rect.x = self.X_POS
+        self.dino_rect.y = self.Y_POS
+        self.step_index += 1
+
+    def jump(self):
+        self.image = self.jump_img
+        if self.dino_jump:
+            self.dino_rect.y -= self.jump_vel * 4
+            self.jump_vel -= 0.8
+        if self.jump_vel < - self.JUMP_VEL:
+            self.dino_jump = False
+            self.jump_vel = self.JUMP_VEL
+
+    def draw(self, SCREEN):
+        SCREEN.blit(self.image, (self.dino_rect.x, self.dino_rect.y))
+
+class BigDinosaur:
+    X_POS = 80
+    Y_POS = 280
+    Y_POS_DUCK = 320
+    JUMP_VEL = 8.5
+
+    def __init__(self):
+        self.duck_img = BIGDUCKING
+        self.run_img = BIGRUNNING
+        self.jump_img = BIGJUMPING
 
         self.dino_duck = False
         self.dino_run = True
@@ -149,6 +227,23 @@ class Obstacle:
         textRectX.center = (100, 60)
         SCREEN.blit(textX, textRectX)
 
+class PowerUp:
+    def __init__(self):
+        self.image = MUSHROOM
+        # self.type = type
+        self.rect = self.image.get_rect()
+        self.rect.x = SCREEN_WIDTH + 300
+        self.rect.y = 320
+       
+
+    def update(self):
+        self.rect.x -= game_speed
+        if self.rect.x < -self.rect.width:
+            powerups.pop()
+
+    def draw(self, SCREEN):
+        SCREEN.blit(self.image, self.rect)
+
 
 class SmallCactus(Obstacle):
     def __init__(self, image):
@@ -179,10 +274,12 @@ class Bird(Obstacle):
 
 
 def main():
-    global game_speed, x_pos_bg, y_pos_bg, points, obstacles
+    global game_speed, x_pos_bg, y_pos_bg, points, obstacles, powerups, powerupON, time, dinoCopy, speed
     run = True
     clock = pygame.time.Clock()
     player = Dinosaur()
+    dinoCopy = player
+    playerBig = BigDinosaur()
     cloud = Cloud()
     game_speed = 20
     x_pos_bg = 0
@@ -190,7 +287,11 @@ def main():
     points = 0
     font = pygame.font.Font('freesansbold.ttf', 20)
     obstacles = []
+    powerups = []
     death_count = 0
+    powerupOn = False
+    time = 0
+    speed = game_speed
     
     def showGameSpeed(game_speed):
         font = pygame.font.Font('freesansbold.ttf', 14)
@@ -198,6 +299,10 @@ def main():
         textRect = text.get_rect()
         textRect.center = (100, 80)
         SCREEN.blit(text, textRect)
+        textClock = font.render("Speed: " + str(speed), True, (0, 0, 0))
+        textClockRect = text.get_rect()
+        textClockRect.center = (100, 250)
+        SCREEN.blit(textClock, textClockRect)
 
     def score():
         global points, game_speed
@@ -231,6 +336,17 @@ def main():
         player.draw(SCREEN)
         player.update(userInput)
 
+        if(powerupOn):
+            playerBig.dino_rect.x = player.dino_rect.x
+            playerBig.dino_rect.y = player.dino_rect.y
+            player = playerBig
+            
+        if(powerupOn) and (pygame.time.get_ticks() - time > 3000):
+            dinoCopy.dino_rect.x = player.dino_rect.x
+            dinoCopy.dino_rect.y = player.dino_rect.y
+            player = dinoCopy
+            powerupOn = False
+
         if len(obstacles) == 0:
             if random.randint(0, 2) == 0:
                 obstacles.append(SmallCactus(SMALL_CACTUS))
@@ -238,6 +354,25 @@ def main():
                 obstacles.append(LargeCactus(LARGE_CACTUS))
             elif random.randint(0, 2) == 2:
                 obstacles.append(Bird(BIRD))
+
+        
+        if (len(powerups)==0) and (game_speed - speed > 3):
+            powerups.append(PowerUp())
+
+        for powerup in powerups:
+            if powerupOn == False:
+                powerup.rect.y = 300
+                if(game_speed - speed > 3):
+                    powerup.draw(SCREEN)
+                    powerup.update()
+
+            if player.dino_rect.colliderect(powerup.rect):
+                powerupOn = True
+                powerup.rect.y = 0
+                speed = game_speed
+                time = pygame.time.get_ticks()
+                powerup.rect.x = SCREEN_WIDTH + 300
+
 
         for obstacle in obstacles:
             obstacle.draw(SCREEN)
