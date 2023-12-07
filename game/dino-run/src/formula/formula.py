@@ -24,11 +24,6 @@ BIRD = [pygame.image.load("images/Bird/Bird1.png"),
         pygame.image.load("images/Bird/Bird2.png")]
 CLOUD = pygame.image.load("images/Other/Cloud.png")
 MUSHROOM = pygame.image.load("images/Powerup/mush.png")
-BIGJUMPING = pygame.image.load("images/BigDino/DinoJump.png")
-BIGRUNNING = [pygame.image.load("images/BigDino/DinoRun1.png"),
-           pygame.image.load("images/BigDino/DinoRun2.png")]
-BIGDUCKING = [pygame.image.load("images/BigDino/DinoDuck1.png"),
-           pygame.image.load("images/BigDino/DinoDuck2.png")]
 BG = pygame.image.load("images/Other/Track.png")
 
 # Commands
@@ -44,6 +39,11 @@ class Dinosaur:
     Y_POS = 310
     Y_POS_DUCK = 340
     JUMP_VEL = 8.5
+    BIG_DINOSAUR = (100, 108)
+    BIG_DINOSAUR_DUCK = (140, 65)
+    Y_POS_BIGDINO = 290
+    Y_POS_DUCK_BIGDINO = 325
+    IS_BIG = False
 
     def __init__(self):
         self.duck_img = DUCKING
@@ -86,103 +86,61 @@ class Dinosaur:
             self.dino_jump = False
 
     def duck(self):
-        self.image = self.duck_img[self.step_index // 5]
-        self.dino_rect = self.image.get_rect()
-        self.dino_rect.x = self.X_POS
-        self.dino_rect.y = self.Y_POS_DUCK
-        self.step_index += 1
+        if self.IS_BIG:
+            currentImage = self.duck_img[self.step_index // 5]
+            self.image = pygame.transform.scale(currentImage, self.BIG_DINOSAUR_DUCK)
+            self.dino_rect = self.image.get_rect()
+            self.dino_rect.x = self.X_POS
+            self.dino_rect.y = self.Y_POS_DUCK_BIGDINO
+            self.step_index += 1
+        else:
+            self.image = self.duck_img[self.step_index // 5]
+            self.dino_rect = self.image.get_rect()
+            self.dino_rect.x = self.X_POS
+            self.dino_rect.y = self.Y_POS_DUCK
+            self.step_index += 1
 
     def run(self):
-        self.image = self.run_img[self.step_index // 5]
-        self.dino_rect = self.image.get_rect()
-        self.dino_rect.x = self.X_POS
-        self.dino_rect.y = self.Y_POS
-        self.step_index += 1
+        if self.IS_BIG:
+            currentImage = self.run_img[self.step_index // 5]
+            self.image = pygame.transform.scale(currentImage, self.BIG_DINOSAUR)
+            self.dino_rect = self.image.get_rect()
+            self.dino_rect.x = self.X_POS
+            self.dino_rect.y = self.Y_POS_BIGDINO
+            self.step_index += 1
+        else:
+            self.image = self.run_img[self.step_index // 5]
+            self.dino_rect = self.image.get_rect()
+            self.dino_rect.x = self.X_POS
+            self.dino_rect.y = self.Y_POS
+            self.step_index += 1
 
     def jump(self):
-        self.image = self.jump_img
-        if self.dino_jump:
-            self.dino_rect.y -= self.jump_vel * 4
-            self.jump_vel -= 0.8
-        if self.jump_vel < - self.JUMP_VEL:
-            self.dino_jump = False
-            self.jump_vel = self.JUMP_VEL
+        if self.IS_BIG:
+            self.image = pygame.transform.scale(self.jump_img, self.BIG_DINOSAUR)
+            if self.dino_jump:
+                self.dino_rect.y -= self.jump_vel * 4
+                self.jump_vel -= 0.8
+            if self.jump_vel < - self.JUMP_VEL:
+                self.dino_jump = False
+                self.jump_vel = self.JUMP_VEL
+        else:
+            self.image = self.jump_img
+            if self.dino_jump:
+                self.dino_rect.y -= self.jump_vel * 4
+                self.jump_vel -= 0.8
+            if self.jump_vel < - self.JUMP_VEL:
+                self.dino_jump = False
+                self.jump_vel = self.JUMP_VEL
 
     def draw(self, SCREEN):
         SCREEN.blit(self.image, (self.dino_rect.x, self.dino_rect.y))
-
-class BigDinosaur:
-    X_POS = 80
-    Y_POS = 280
-    Y_POS_DUCK = 325
-    JUMP_VEL = 8.5
-
-    def __init__(self):
-        self.duck_img = BIGDUCKING
-        self.run_img = BIGRUNNING
-        self.jump_img = BIGJUMPING
-
-        self.dino_duck = False
-        self.dino_run = True
-        self.dino_jump = False
-
-        self.step_index = 0
-        self.jump_vel = self.JUMP_VEL
-        self.image = self.run_img[0]
-        self.dino_rect = self.image.get_rect()
-        self.dino_rect.x = self.X_POS
-        self.dino_rect.y = self.Y_POS
-
-    def update(self, userInput):
-        if self.dino_duck:
-            self.duck()
-        if self.dino_run:
-            self.run()
-        if self.dino_jump:
-            self.jump()
-
-        if self.step_index >= 10:
-            self.step_index = 0
-
-        if userInput[pygame.K_UP] and not self.dino_jump:
-            self.dino_duck = False
-            self.dino_run = False
-            self.dino_jump = True
-        elif userInput[pygame.K_DOWN] and not self.dino_jump:
-            self.dino_duck = True
-            self.dino_run = False
-            self.dino_jump = False
-        elif not (self.dino_jump or userInput[pygame.K_DOWN]):
-            self.dino_duck = False
-            self.dino_run = True
-            self.dino_jump = False
-
-    def duck(self):
-        self.image = self.duck_img[self.step_index // 5]
-        self.dino_rect = self.image.get_rect()
-        self.dino_rect.x = self.X_POS
-        self.dino_rect.y = self.Y_POS_DUCK
-        self.step_index += 1
-
-    def run(self):
-        self.image = self.run_img[self.step_index // 5]
-        self.dino_rect = self.image.get_rect()
-        self.dino_rect.x = self.X_POS
-        self.dino_rect.y = self.Y_POS
-        self.step_index += 1
-
-    def jump(self):
-        self.image = self.jump_img
-        if self.dino_jump:
-            self.dino_rect.y -= self.jump_vel * 4
-            self.jump_vel -= 0.8
-        if self.jump_vel < - self.JUMP_VEL:
-            self.dino_jump = False
-            self.jump_vel = self.JUMP_VEL
-
-    def draw(self, SCREEN):
-        SCREEN.blit(self.image, (self.dino_rect.x, self.dino_rect.y))
-
+    
+    def growUp(self):
+        self.IS_BIG = True
+    
+    def decrease(self):
+        self.IS_BIG = False
 
 class Cloud:
     def __init__(self):
@@ -279,7 +237,6 @@ def main():
     clock = pygame.time.Clock()
     player = Dinosaur()
     dinoCopy = player
-    playerBig = BigDinosaur()
     cloud = Cloud()
     game_speed = 20
     x_pos_bg = 0
@@ -299,10 +256,6 @@ def main():
         textRect = text.get_rect()
         textRect.center = (100, 80)
         SCREEN.blit(text, textRect)
-        # textClock = font.render("Speed: " + str(speed), True, (0, 0, 0))
-        # textClockRect = text.get_rect()
-        # textClockRect.center = (100, 250)
-        # SCREEN.blit(textClock, textClockRect)
 
     def score():
         global points, game_speed
@@ -337,14 +290,10 @@ def main():
         player.update(userInput)
 
         if(powerupOn): #    Quando muda o dinossauro pequeno para o grande
-            playerBig.dino_rect.x = player.dino_rect.x
-            playerBig.dino_rect.y = player.dino_rect.y
-            player = playerBig
+            player.growUp()
             
-        if(powerupOn) and (pygame.time.get_ticks() - time > 3000): #    Quando o dinossauro volta ao normal
-            dinoCopy.dino_rect.x = player.dino_rect.x
-            dinoCopy.dino_rect.y = player.dino_rect.y
-            player = dinoCopy
+        if(powerupOn) and (pygame.time.get_ticks() - time > 5000): #    Quando o dinossauro volta ao normal
+            player.decrease()
             powerupOn = False
 
         if len(obstacles) == 0:
