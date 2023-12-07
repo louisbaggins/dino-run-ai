@@ -114,7 +114,7 @@ class Dinosaur:
 class BigDinosaur:
     X_POS = 80
     Y_POS = 280
-    Y_POS_DUCK = 320
+    Y_POS_DUCK = 325
     JUMP_VEL = 8.5
 
     def __init__(self):
@@ -299,10 +299,10 @@ def main():
         textRect = text.get_rect()
         textRect.center = (100, 80)
         SCREEN.blit(text, textRect)
-        textClock = font.render("Speed: " + str(speed), True, (0, 0, 0))
-        textClockRect = text.get_rect()
-        textClockRect.center = (100, 250)
-        SCREEN.blit(textClock, textClockRect)
+        # textClock = font.render("Speed: " + str(speed), True, (0, 0, 0))
+        # textClockRect = text.get_rect()
+        # textClockRect.center = (100, 250)
+        # SCREEN.blit(textClock, textClockRect)
 
     def score():
         global points, game_speed
@@ -336,12 +336,12 @@ def main():
         player.draw(SCREEN)
         player.update(userInput)
 
-        if(powerupOn):
+        if(powerupOn): #    Quando muda o dinossauro pequeno para o grande
             playerBig.dino_rect.x = player.dino_rect.x
             playerBig.dino_rect.y = player.dino_rect.y
             player = playerBig
             
-        if(powerupOn) and (pygame.time.get_ticks() - time > 3000):
+        if(powerupOn) and (pygame.time.get_ticks() - time > 3000): #    Quando o dinossauro volta ao normal
             dinoCopy.dino_rect.x = player.dino_rect.x
             dinoCopy.dino_rect.y = player.dino_rect.y
             player = dinoCopy
